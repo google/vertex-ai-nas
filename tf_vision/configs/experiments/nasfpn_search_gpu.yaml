@@ -1,0 +1,108 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Search NAS-FPN nodes based on NAS-FPN paper.
+# Expected output when run using 2 V100 GPUs:
+#   AP: 0.142
+#   FLOPS: 53.03
+#   Duration of each trial: 1 hr 43 mins
+runtime:
+  distribution_strategy: 'mirrored'
+  mixed_precision_dtype: 'float16'
+  loss_scale: 'dynamic'
+task:
+  model:
+    # Note that `num_classes` is the total number of classes including
+    # one background class with an index value of 0.
+    num_classes: 91
+    # Controls the effective image-size for training.
+    input_size: [512, 512, 3]
+    # NOTE: If you change the 'min_level' and 'max_level'
+    # search-space related parameters here, then you also need
+    # to change them in the 'search_spaces.py' file.
+    min_level: 3
+    max_level: 7
+    backbone:
+      type: 'resnet'
+      resnet:
+        model_id: 10
+    decoder:
+      type: 'tunable_nasfpn'
+      tunable_nasfpn:
+        num_filters: 256
+        num_repeats: 3
+        use_separable_conv: false
+    detection_generator:
+      # The maximum number of bboxes in one image.
+      max_num_detections: 100
+    head:
+      num_filters: 256
+      num_convs: 4
+    anchor:
+      # The intermediate scales added on each level.
+      # For instance, num_scales=2 adds one additional intermediate anchor scales
+      # [2^0, 2^0.5] on each level.
+      num_scales: 3
+      aspect_ratios: [1.0, 2.0, 0.5]
+      # A float number representing the scale of size of the base
+      # anchor to the feature stride 2^level.
+      anchor_size: 3.0
+  train_data:
+    # Reduce the batch-size if you run into out-of-memory error.
+    # Out-of-memory error may also be resolved by reducing
+    # the image-size but at the expense of quality.
+    # The global batch size for all included GPUs,
+    # batch-size-per-gpu = global_batch_size / num-gpus, under mirrored distribution strategy.
+    global_batch_size: 64
+    dtype: 'float16'
+    parser:
+      aug_rand_hflip: true
+      aug_scale_max: 1.2
+      aug_scale_min: 0.8
+  validation_data:
+    # NOTE: Partial batch will not be used for evaluation. So ideally,
+    # the total-number of eval-samples should be divisible by
+    # 'eval_batch_size' if you want all the samples to be used.
+    global_batch_size: 8
+    dtype: 'float16'
+    drop_remainder: false
+
+  # Backbone is trained from scratch.
+  init_checkpoint: null
+  init_checkpoint_modules: null
+trainer:
+  # Set train_steps to around 5 to 10 epochs for search.
+  # Guideline: train_steps = (num-train-examples/train-batch-size)*num-epochs.
+  train_steps: 8663 # 5 epochs, 5 * (110895 / 64) = 5 * 1733 = 10398
+  validation_steps: 625 # 5000 examples / 8 (batch_size) = 625 steps
+  steps_per_loop: 1733
+  validation_interval: 1733
+  summary_interval: 1733
+  checkpoint_interval: 1733
+  optimizer_config:
+    optimizer:
+      type: 'sgd'
+      sgd:
+        momentum: 0.9
+    learning_rate:
+      type: 'cosine'
+      cosine:
+        initial_learning_rate: 0.08
+        decay_steps: 8663
+    warmup:
+      type: 'linear'
+      linear:
+        # Warm up in 1 epoch.
+        warmup_learning_rate: 0.0067
+        warmup_steps: 1733

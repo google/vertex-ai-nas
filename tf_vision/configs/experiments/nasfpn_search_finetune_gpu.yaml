@@ -1,0 +1,106 @@
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ---------- Search NAS-FPN nodes based on NAS-FPN paper ----------
+# Expected output when run using 8 NVIDIA_V100 GPUs:
+#   AP: 0.33
+#   FLOPS: 81
+#   Duration of each trial: 2 days
+runtime:
+  distribution_strategy: 'mirrored'
+  mixed_precision_dtype: 'float16'
+  loss_scale: 'dynamic'
+task:
+  model:
+    # Note that `num_classes` is the total number of classes including
+    # one background class with an index value of 0.
+    num_classes: 91
+    # Controls the effective image-size for training.
+    # Increase the size to e.g. 640 will improve performance but may have OOM issue.
+    input_size: [512, 512, 3]
+    # NOTE: If you change the 'min_level' and 'max_level'
+    # search-space related parameters here, then you also need
+    # to change them in the 'search_spaces.py' file.
+    min_level: 3
+    max_level: 7
+    backbone:
+      type: 'resnet'
+      resnet:
+        model_id: 50
+    decoder:
+      type: 'tunable_nasfpn'
+      tunable_nasfpn:
+        num_filters: 256
+        num_repeats: 5
+        use_separable_conv: false
+    detection_generator:
+      # The maximum number of bboxes in one image.
+      max_num_detections: 100
+    head:
+      num_filters: 256
+      num_convs: 4
+    anchor:
+      # The intermediate scales added on each level.
+      # For instance, num_scales=2 adds one additional intermediate anchor scales
+      # [2^0, 2^0.5] on each level.
+      num_scales: 3
+      aspect_ratios: [1.0, 2.0, 0.5]
+      # A float number representing the scale of size of the base
+      # anchor to the feature stride 2^level.
+      anchor_size: 3.0
+  train_data:
+    # Reduce the batch-size if you run into out-of-memory error.
+    # Out-of-memory error may also be resolved by reducing
+    # the image-size but at the expense of quality.
+    # The global batch size for all included GPUs,
+    # global_batch_size = batch-size-per-gpu * num-gpus, under mirrored distribution strategy.
+    # 64 = 8 * 8
+    global_batch_size: 64
+    dtype: 'float16'
+    parser:
+      aug_rand_hflip: true
+      aug_scale_max: 1.2
+      aug_scale_min: 0.8
+  validation_data:
+    # NOTE: Partial batch will not be used for evaluation. So ideally,
+    # the total-number of eval-samples should be divisible by
+    # 'eval_batch_size' if you want all the samples to be used.
+    # Evaluation of detection models needs to generate detection boxes and calculate metrics, which
+    # might increase peak memory footprint a lot. So the batch size is usually smaller than the one
+    # of training.
+    global_batch_size: 32
+    dtype: 'float16'
+    drop_remainder: false
+
+  init_checkpoint: 'gs://cloud-ml-nas-public/detection/pretrained_checkpoints/resnet50'
+  init_checkpoint_modules: 'backbone'
+trainer:
+  # Guideline: train_steps = (num-examples / train-batch-size) * epochs
+  # 185200 = (118528 / 64) * 100 = 1852 * 100
+  train_steps: 185200
+  validation_steps: 156  # 5000 / 32
+  steps_per_loop: 1852
+  validation_interval: 1852
+  summary_interval: 1852
+  checkpoint_interval: 1852
+  optimizer_config:
+    optimizer:
+      type: 'sgd'
+      sgd:
+        momentum: 0.9
+    learning_rate:
+      type: 'cosine'
+      cosine:
+        # Reduce the learning rate if you get gradients reaching NAN error.
+        initial_learning_rate: 0.005
+        decay_steps: 185200

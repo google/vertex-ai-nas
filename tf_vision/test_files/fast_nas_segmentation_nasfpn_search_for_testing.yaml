@@ -1,0 +1,61 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+runtime:
+  mixed_precision_dtype: 'float16'
+task:
+  model:
+    backbone:
+      efficientnet:
+        model_id: 'b0'
+      type: 'efficientnet'
+    decoder:
+      tunable_nasfpn:
+        num_filters: 256
+        num_repeats: 3
+        use_separable_conv: false
+      type: 'tunable_nasfpn'
+    input_size: [null, null, 3]
+    max_level: 7
+    min_level: 3
+  train_data:
+    output_size: [256, 256]
+    dtype: 'float16'
+    global_batch_size: 2
+    is_training: true
+    shuffle_buffer_size: 100
+    cache: true
+  validation_data:
+    output_size: [256, 256]
+    dtype: 'float16'
+    global_batch_size: 1
+    is_training: false
+    cache: true
+trainer:
+  train_steps: 1
+  steps_per_loop: 1
+  validation_steps: 1
+  validation_interval: 1
+  summary_interval: 1
+  checkpoint_interval: 1
+  optimizer_config:
+    learning_rate:
+      stepwise:
+        # Decay at end of epoch 8.
+        boundaries: [13864]
+        values: [0.08, 0.008]
+      type: 'stepwise'
+    warmup:
+      linear:
+        # Warm up in 1 epoch.
+        warmup_steps: 1733

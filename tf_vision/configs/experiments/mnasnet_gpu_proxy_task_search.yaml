@@ -1,0 +1,84 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Imagenet finetuning config for proxy-task search with 2 NVIDIA_V100 GPUs.
+runtime:
+  distribution_strategy: 'mirrored'
+  mixed_precision_dtype: 'float16'
+  loss_scale: 'dynamic'
+task:
+  model:
+    # Note that `num_classes` is the total number of classes including
+    # one background class with an index value of 0.
+    num_classes: 1001
+    # Controls the effective image-size for training.
+    input_size: [224, 224, 3]
+    backbone:
+      type: 'tunable_mnasnet'
+      tunable_mnasnet:
+        # The number of filters of the output endpoints.
+        endpoints_num_filters: 1280
+    dropout_rate: 0.2
+    norm_activation:
+      norm_epsilon: 0.001
+      norm_momentum: 0.99
+      use_sync_bn: true
+  losses:
+    one_hot: true
+    label_smoothing: 0.1
+    l2_weight_decay: 0.00001
+  train_data:
+    # Reduce the batch-size if you run into out-of-memory error. Out-of-memory error may also be
+    # resolved by reducing the image-size but at the expense of quality.
+    # The global batch size for all included GPUs,
+    # global_batch_size = batch-size-per-gpu * num-gpus, under mirrored distribution strategy.
+    # 512 = 256 * 2
+    global_batch_size: 512
+    dtype: 'float16'
+  validation_data:
+    # NOTE: Partial batch will not be used for evaluation. So ideally,
+    # the total-number of eval-samples should be divisible by
+    # 'eval_batch_size' if you want all the samples to be used.
+    # 'eval_batch_size' needs to be divisible by 8 when using TPU.
+    global_batch_size: 256
+    dtype: 'float16'
+    drop_remainder: false
+  init_checkpoint: null
+  init_checkpoint_modules: null
+trainer:
+  train_steps: 875700  # ~350 epochs (350*(1281024/512))
+  validation_steps: 244  # 62550 / 256
+  steps_per_loop: 1250
+  validation_interval: 1250
+  summary_interval: 1250
+  checkpoint_interval: 1250
+  optimizer_config:
+    optimizer:
+      type: 'rmsprop'
+      rmsprop:
+        epsilon: 0.002
+        momentum: 0.9
+        global_clipnorm: 1
+    warmup:
+      linear:
+        name: linear
+        warmup_learning_rate: 0
+        warmup_steps: 6256
+      type: linear
+    learning_rate:
+      cosine:
+        decay_steps: 875700
+        # Reduce the learning rate if you get gradients reaching NAN error.
+        initial_learning_rate: 0.032
+      type: 'cosine'

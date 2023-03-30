@@ -1,0 +1,77 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# MNasNet Imagenet search config.
+task:
+  model:
+    # Note that `num_classes` is the total number of classes including
+    # one background class with an index value of 0.
+    num_classes: 1001
+    # Controls the effective image-size for training.
+    input_size: [224, 224, 3]
+    backbone:
+      type: 'tunable_mnasnet'
+      tunable_mnasnet:
+        # The number of filters of the output endpoints.
+        endpoints_num_filters: 256
+    dropout_rate: 0.2
+    norm_activation:
+      norm_epsilon: 0.001
+      norm_momentum: 0.99
+      use_sync_bn: true
+  losses:
+    one_hot: true
+    label_smoothing: 0.1
+  train_data:
+    # Reduce the batch-size if you run into out-of-memory error.
+    # Out-of-memory error may also be resolved by reducing
+    # the image-size but at the expense of quality.
+    global_batch_size: 1024
+  validation_data:
+    # NOTE: Partial batch will not be used for evaluation. So ideally,
+    # the total-number of eval-samples should be divisible by
+    # 'eval_batch_size' if you want all the samples to be used.
+    # 'eval_batch_size' needs to be divisible by 8 when using TPU.
+    global_batch_size: 1024
+    drop_remainder: false
+
+  # Backbone is trained from scratch.
+  init_checkpoint: null
+  init_checkpoint_modules: null
+trainer:
+  # Set num-steps to around 5 to 10 epochs for search.
+  # Guideline: total_steps = (num-train-examples/train_batch_size)*5.
+  # Ideally your individual search-trial should
+  # finish within 30 mins to 1 hour.
+  train_steps: 8784  # ~8 epochs.
+  validation_steps: 20  # 20000 examples / 1024 (batch_size) = 20 steps
+  steps_per_loop: 1098
+  validation_interval: 1098
+  summary_interval: 1098
+  checkpoint_interval: 1098
+  optimizer_config:
+    optimizer:
+      type: 'sgd'
+      sgd:
+        momentum: 0.9
+    learning_rate:
+      stepwise:
+        boundaries: [6588]  # Decay at 6th epoches.
+        values: [0.064, 0.0064]
+      type: 'stepwise'
+    warmup:
+      type: 'linear'
+      linear:
+        warmup_steps: 601  # 0.5 epoch.
+

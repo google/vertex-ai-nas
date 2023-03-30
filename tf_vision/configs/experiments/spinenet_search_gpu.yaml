@@ -1,0 +1,114 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# SpineNet search config for GPU.
+# Expected output when run using 2 NVIDIA_V100 GPUs:
+#   AP: 0.131
+#   FLOPS: 9.482
+#   Duration of each trial: 2 hrs 17 mins
+runtime:
+  distribution_strategy: 'mirrored'
+  mixed_precision_dtype: 'float16'
+  loss_scale: 'dynamic'
+task:
+  model:
+    # Note that `num_classes` is the total number of classes including
+    # one background class with an index value of 0.
+    num_classes: 91
+    # Controls the effective image-size for training.
+    input_size: [512, 512, 3]
+    # NOTE: If you change the 'min_level' and 'max_level'
+    # search-space related parameters here, then you also need
+    # to change them in the 'search_spaces.py' file.
+    min_level: 3
+    max_level: 7
+    backbone:
+      type: 'tunable_spinenet'
+      tunable_spinenet:
+        # The multiplier of the number of filters for each block.
+        filter_size_scale: 0.5
+        # the scaling factor to scale feature dimension before resolution resampling.
+        resample_alpha: 0.25
+        # The number of filters of the output endpoints.
+        endpoints_num_filters: 64
+        block_repeats: 1
+    decoder:
+      type: 'identity'
+    detection_generator:
+      # The maximum number of bboxes in one image.
+      max_num_detections: 100
+    head:
+      num_filters: 64
+      num_convs: 4
+    anchor:
+      # The intermediate scales added on each level.
+      # For instance, num_scales=2 adds one additional intermediate anchor scales
+      # [2^0, 2^0.5] on each level.
+      num_scales: 3
+      aspect_ratios: [1.0, 2.0, 0.5]
+      # A float number representing the scale of size of the base
+      # anchor to the feature stride 2^level.
+      anchor_size: 3.0
+  train_data:
+    # Reduce the batch-size if you run into out-of-memory error.
+    # Out-of-memory error may also be resolved by reducing
+    # the image-size but at the expense of quality.
+    # The global batch size for all included GPUs,
+    # batch-size-per-gpu = global_batch_size / num-gpus, under mirrored distribution strategy.
+    global_batch_size: 80
+    dtype: 'float16'
+    parser:
+      aug_rand_hflip: true
+      aug_scale_max: 2.0
+      aug_scale_min: 0.5
+  validation_data:
+    # NOTE: Partial batch will not be used for evaluation. So ideally,
+    # the total-number of eval-samples should be divisible by
+    # 'eval_batch_size' if you want all the samples to be used.
+    # 'eval_batch_size' needs to be divisible by 8 when using TPU.
+    global_batch_size: 16
+    dtype: 'float16'
+    drop_remainder: false
+
+  # Backbone is trained from scratch.
+  init_checkpoint: null
+  init_checkpoint_modules: null
+trainer:
+  # Set num-steps to around 5 to 10 epochs for search.
+  # Ideally your individual search-trial should finish by around 1 hour.
+  # Guideline: train_steps = (num-examples / train-batch-size) * epochs
+  # 16634 = (110895 / 80) * 12 = 1386 * 12
+  train_steps: 16634
+  validation_steps: 312  # 5000 / 16
+  steps_per_loop: 1386
+  validation_interval: 1386
+  summary_interval: 1386
+  checkpoint_interval: 1386
+  optimizer_config:
+    optimizer:
+      type: 'sgd'
+      sgd:
+        momentum: 0.9
+    learning_rate:
+      cosine:
+        # Reduce the learning rate if roughly more than 30% of your
+        # trials fail due to gradients reaching NAN error.
+        initial_learning_rate: 0.16
+        decay_steps: 16634
+      type: 'cosine'
+    warmup:
+      type: 'linear'
+      linear:
+        warmup_learning_rate: 0.0067
+        warmup_steps: 1386

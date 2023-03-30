@@ -1,0 +1,144 @@
+# Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+"""Base config template that defines train, eval and backbones."""
+
+# pylint: disable=line-too-long
+REGULARIZATION_VAR_REGEX = r'.*(kernel|weight):0$'
+BASE_CFG = {
+    'model_dir': '',
+    'use_tpu': True,
+    'isolate_session_state': False,
+    'architecture': {
+        'min_level': 3,
+        'max_level': 7,
+        'use_bfloat16': True,
+        'space_to_depth_block_size': 1,
+        # A parser method for parsing additional data to pass to the main
+        # parser method. For example for Copy-Paste augmentation this method
+        # should be set to 'extract_objects_parser' to parse pasting objects
+        # which will be passed to the main parser of
+        # 'maskrcnn_parser_with_copy_paste'.
+        'pre_parser': None,
+    },
+    'train': {
+        'iterations_per_loop': 100,
+        'train_batch_size': 64,
+        'total_steps': 22500,
+        'num_cores_per_replica': None,
+        'input_partition_dims': None,
+        'optimizer': {
+            'type': 'momentum',
+            'momentum': 0.9,
+        },
+        'learning_rate': {
+            'type': 'step',
+            'warmup_learning_rate': 0.0067,
+            'warmup_steps': 500,
+            'init_learning_rate': 0.08,
+            'learning_rate_levels': [0.008, 0.0008],
+            'learning_rate_steps': [15000, 20000],
+        },
+        'checkpoint': {
+            'path': '',
+            'prefix': '',
+            'skip_variables_regex': '',
+        },
+        'frozen_variable_prefix': None,
+        'train_file_pattern': '',
+        'train_dataset_type': 'tfrecord',
+        'transpose_input': True,
+        'regularization_variable_regex': REGULARIZATION_VAR_REGEX,
+        'l2_weight_decay': 0.0001,
+        'gradient_clip_norm': 0.0,
+        'space_to_depth_block_size': 1,
+        'pre_parser_dataset': {
+            'file_pattern': '',
+            'dataset_type': 'tfrecord',
+        },
+    },
+    'eval': {
+        'eval_batch_size': 8,
+        'eval_samples': 5000,
+        'min_eval_interval': 180,
+        'eval_timeout': None,
+        'num_steps_per_eval': 1000,
+        'eval_file_pattern': '',
+        'eval_dataset_type': 'tfrecord',
+        'skip_eval_loss': False,
+        # suffix appends after `eval` to distinguish different eval runs
+        'suffix': ''
+    },
+    'predict': {
+        'predict_batch_size': 8,
+    },
+    'batch_norm_activation': {
+        'batch_norm_momentum': 0.997,
+        'batch_norm_epsilon': 1e-4,
+        'batch_norm_trainable': True,
+        'use_sync_bn': False,
+        'activation': 'relu',
+    },
+    'dropblock': {
+        'dropblock_keep_prob': None,
+        'dropblock_size': None,
+    },
+    'resnet': {
+        'resnet_depth': 50,
+        'init_drop_connect_rate': None,
+    },
+
+    'mnasnet': {
+        'block_specs': None,
+    },
+    'tunable_mnasnet': {
+        'block_specs': None,
+    },
+    'tunable_efficientnet_v2': {
+        'block_specs': None,
+    },
+
+    'spinenet': {
+        'model_id': '49',
+        'init_drop_connect_rate': None,
+        'use_native_resize_op': False,
+    },
+    'spinenet_mbconv': {
+        'model_id': '49',
+        'se_ratio': 0.2,
+        'init_drop_connect_rate': None,
+        'use_native_resize_op': False,
+    },
+
+    'tunable_spinenet': {
+        'block_specs': None,
+        'endpoints_num_filters': 256,
+        'resample_alpha': 0.5,
+        'use_native_resize_op': False,
+        'block_repeats': 1,
+        'filter_size_scale': 1.0,
+        'init_drop_connect_rate': None,
+    },
+    'tunable_spinenet_mbconv': {
+        'block_specs': None,
+        'endpoints_num_filters': 48,
+        'use_native_resize_op': False,
+        'block_repeats': 1,
+        'filter_size_scale': 1.0,
+        'init_drop_connect_rate': None,
+    },
+
+    'enable_summary': False,
+}
+# pylint: enable=line-too-long

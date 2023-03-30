@@ -1,0 +1,59 @@
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ---------- Search NAS-FPN nodes based on NAS-FPN paper ----------
+
+
+train:
+  train_file_pattern: ""
+  total_steps: 1
+  learning_rate:
+    init_learning_rate: 0.08
+    learning_rate_levels: [0.008]
+    # Decay at end of epoch 8.
+    learning_rate_steps: [13864]
+    # Warm up in 1 epoch.
+    warmup_steps: 0
+  # Backbone is trained from scratch.
+  checkpoint:
+    path: null
+    prefix: null
+  train_batch_size: 1
+
+eval:
+  eval_file_pattern: ""
+  # Do not use annotation file so the ground truth will be read from dataset loader.
+  val_json_file: null
+  eval_samples: 1
+  eval_batch_size: 1
+
+architecture:
+  min_level: 3
+  max_level: 7
+  multilevel_features: 'identity'
+  use_bfloat16: false
+  backbone: 'tunable_spinenet_mbconv'
+
+tunable_spinenet_mbconv:
+  # The multiplier of the number of filters for each block.
+  filter_size_scale: 0.25
+  # The number of filters of the output endpoints.
+  endpoints_num_filters: 64
+
+retinanet_parser:
+  aug_scale_min: 0.8
+  aug_scale_max: 1.2
+  output_size: [128, 128]
+
+resnet:
+  resnet_depth: 10

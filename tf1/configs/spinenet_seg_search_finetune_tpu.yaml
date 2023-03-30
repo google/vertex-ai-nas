@@ -1,0 +1,118 @@
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Expected result when using TPU-v2 8 cores:
+#   mIOU: 0.66
+#   FLOPS: 23
+#   Duration of each trial: 25 hrs
+train:
+  # Train file pattern is provided by the binary flag.
+
+  # Reduce the batch-size if you run into out-of-memory error.
+  # Out-of-memory error may also be resolved by reducing
+  # the image-size but at the expense of quality.
+  # NOTE: 256 is for 4x4 TPU Pod. May need to adjust batch size and learning rate for 2x2 or GPU devices.
+  train_batch_size: 128
+
+  total_steps: 200000
+
+  learning_rate:
+    type: 'cosine'
+    warmup_learning_rate: 0.0067
+    warmup_steps: 2000
+    # Reduce the learning rate if you get gradients reaching NAN error.
+    init_learning_rate: 0.28
+  checkpoint:
+    path: ''
+    prefix: ''
+  l2_weight_decay: 0.00004
+  gradient_clip_norm: 10.0
+
+eval:
+  # Eval file pattern is provided by the binary flag.
+
+  # NOTE: Eval_samples must be no more than the number of actual validation examples.
+  # Otherwise the TPU evaluator will raise an error.
+  # Data path: gs://cloud-ml-nas-public/segmentation/pascal/val*
+  eval_samples: 1449
+
+  # NOTE: Partial batch will not be used for evaluation. So ideally,
+  # the total-number of eval-samples should be divisible by
+  # 'eval_batch_size' if you want all the samples to be used.
+  # 'eval_batch_size' needs to be divisible by 8 when using TPU.
+  eval_batch_size: 8
+
+architecture:
+  parser: 'segmentation_parser'
+  multilevel_features: 'identity'
+  backbone: 'tunable_spinenet'
+  use_bfloat16: true
+  # Note that `num_classes` is the total number of classes including
+  # one background class with an index value of 0.
+  num_classes: 21
+  use_aspp: false
+  use_pyramid_fusion: true
+  # NOTE: If you change the 'min_level' and 'max_level'
+  # search-space related parameters here, then you also need
+  # to change them in the 'search_spaces.py' file.
+  min_level: 3
+  max_level: 7
+
+segmentation_parser:
+  aug_rand_hflip: true
+  aug_scale_max: 1.5
+  aug_scale_min: 0.75
+  ignore_label: 255
+  output_size: [512, 512]
+  resize_eval: false
+segmentation_head:
+  # Its value need to be the same as `architecture.min_level`.
+  level: 3
+  num_convs: 2
+
+tunable_spinenet:
+  ##### SpineNet-49 @640,896 ####
+  filter_size_scale: 1.0
+  block_repeats: 1
+  resample_alpha: 0.5
+  endpoints_num_filters: 256
+  ##### SpineNet-96 @1024 #######
+  # filter_size_scale: 1.0
+  # block_repeats: 2
+  # resample_alpha: 0.5
+  # endpoints_num_filters: 256
+  ##### SpineNet-143 @1280 ######
+  # filter_size_scale: 1.0
+  # block_repeats: 3
+  # resample_alpha: 1.0
+  # endpoints_num_filters: 256
+  ##### SpineNet-49S @640 #######
+  # filter_size_scale: 0.75
+  # block_repeats: 1
+  # resample_alpha: 0.5
+  # endpoints_num_filters: 128
+  ###############################
+  init_drop_connect_rate: 0.2
+
+batch_norm_activation:
+  activation: 'swish'
+  batch_norm_epsilon: 0.001
+  batch_norm_momentum: 0.997
+  batch_norm_trainable: true
+  use_sync_bn: true
+
+segmentation_loss:
+  ignore_label: 255
+  use_groundtruth_dimension: false
+  label_smoothing: 0.05

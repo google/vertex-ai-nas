@@ -1,0 +1,33 @@
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Config file for NAS model latency / memory calculator docker.
+
+# Width of testing image.
+image_width: 512
+
+# Height of testing image.
+image_height: 512
+
+# The Tensorflow SavedModel input_node. Need to update if customized trainer is used.
+input_node: "Placeholder:0"
+
+# The Tensorflow SavedModel output_mode. Need to update if customized trainer is used.
+output_nodes: "DetectionBoxes:0,DetectionClasses:0,DetectionScores:0"
+
+# The number of repetitions to run for latency calculation
+num_repetitions_for_latency_computation: 100
+
+# True to use tensorrt conversion for Nvidia GPU.
+use_tensorrt_conversion_on_gpu: True

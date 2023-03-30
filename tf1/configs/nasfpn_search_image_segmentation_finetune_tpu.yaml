@@ -1,0 +1,82 @@
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# ---------- Search NAS-FPN nodes based on NAS-FPN paper ----------
+train:
+  # Train file pattern is provided by the binary flag.
+
+  # Reduce the batch-size if you run into out-of-memory error.
+  # Out-of-memory error may also be resolved by reducing
+  # the image-size but at the expense of quality.
+  train_batch_size: 128
+
+  # Set num-steps to around 100 epochs.
+  total_steps: 90000
+
+  checkpoint:
+    path: 'gs://pretrained_checkpoints/backbone/noisy-student-efficientnet-b5'
+    prefix: ''
+  frozen_variable_prefix: null
+
+  learning_rate:
+    type: 'cosine'
+    warmup_learning_rate: 0.0067
+    warmup_steps: 500
+    # Reduce the learning rate if you get gradients reaching NAN error.
+    init_learning_rate: 0.02
+  gradient_clip_norm: 0.5
+
+eval:
+  # Eval file pattern is provided by the binary flag.
+
+  eval_samples: 1449
+
+  # NOTE: Partial batch will not be used for evaluation. So ideally,
+  # the total-number of eval-samples should be divisible by
+  # 'eval_batch_size' if you want all the samples to be used.
+  # 'eval_batch_size' needs to be divisible by 8 when using TPU.
+  eval_batch_size: 8
+
+architecture:
+  # NOTE: If you change the 'min_level' and 'max_level'
+  # search-space related parameters here, then you also need
+  # to change them in the 'search_spaces.py' file.
+  min_level: 3
+  max_level: 7
+  multilevel_features: 'tunable_nasfpn_v2'
+  # Note that `num_classes` is the total number of classes including
+  # one background class with an index value of 0.
+  num_classes: 21
+
+tunable_nasfpn_v2:
+  fpn_feat_dims: 256
+  num_repeats: 5
+  use_separable_conv: False
+
+segmentation_parser:
+  aug_rand_hflip: true
+  aug_scale_max: 1.5
+  aug_scale_min: 0.75
+  ignore_label: 255
+  # Controls the effective image-size for training.
+  output_size: [512, 512]
+
+segmentation_head:
+  # Its value need to be the same as `architecture.min_level`.
+  level: 3
+
+enable_summary: true
+
+segmentation_loss:
+  ignore_label: 255

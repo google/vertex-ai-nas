@@ -1,0 +1,95 @@
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# SpineNet search config.
+
+train:
+  # Train file pattern is provided by the binary flag.
+
+  # Reduce the batch-size if you run into out-of-memory error.
+  # Out-of-memory error may also be resolved by reducing
+  # the image-size but at the expense of quality.
+  train_batch_size: 16
+
+  # Set num-steps to around 5 to 10 epochs for search.
+  # Guideline: total_steps = (num-train-examples/train_batch_size)*10.
+  # Ideally your individual search-trial should
+  # finish within 30 mins to 1 hour.
+  total_steps: 11088 # 3 epoches of CoCo.
+
+  learning_rate:
+    # Reduce the learning rate if roughly more than 30% of your
+    # trials fail due to gradients reaching NAN error.
+    init_learning_rate: 0.16
+    type: 'cosine'
+    # Warm up in 1 epoch. 118287 (CoCo) / (16 * 2 GPU)
+    warmup_steps: 3696
+  # Backbone is trained from scratch.
+  checkpoint:
+    path: ''
+    prefix: ''
+
+eval:
+  # Eval file pattern is provided by the binary flag.
+
+  # Setting 'eval_samples' to null forces all the evaluation examples to be used.
+  # Setting 'eval_samples: 5000' will use only 5000 examples.
+  eval_samples: null
+
+  # NOTE: Partial batch will not be used for evaluation. So ideally,
+  # the total-number of eval-samples should be divisible by
+  # 'eval_batch_size' if you want all the samples to be used.
+  # 'eval_batch_size' needs to be divisible by 8 when using TPU.
+  eval_batch_size: 8
+
+architecture:
+  backbone: 'tunable_spinenet'
+  # NOTE: If you change the 'min_level' and 'max_level'
+  # search-space related parameters here, then you also need
+  # to change them in the 'search_spaces.py' file.
+  min_level: 3
+  max_level: 7
+  multilevel_features: 'identity'
+  # Note that `num_classes` is the total number of classes including
+  # one background class with an index value of 0.
+  num_classes: 91 # 91 classes for CoCo.
+
+anchor:
+  # The intermediate scales added on each level.
+  # For instance, num_scales=2 adds one additional intermediate anchor scales
+  # [2^0, 2^0.5] on each level.
+  num_scales: 3
+  aspect_ratios: [1.0, 2.0, 0.5]
+  # A float number representing the scale of size of the base
+  # anchor to the feature stride 2^level.
+  anchor_size: 4.0
+
+tunable_spinenet:
+  filter_size_scale: 0.25
+  resample_alpha: 0.25
+  endpoints_num_filters: 64
+
+retinanet_parser:
+  aug_scale_min: 0.8
+  aug_scale_max: 1.2
+  # Controls the effective image-size for training.
+  output_size: [384, 384]
+  # The maximum number of bboxes in one image.
+  max_num_instances: 100
+  aug_rand_hflip: True
+
+retinanet_head:
+  # This number should be the same as anchor.num_scales * len(anchor.aspect_ratios).
+  anchors_per_location: 9
+  num_filters: 64
+  num_convs: 4

@@ -1,0 +1,134 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# SpineNet finetuning config.
+# Expected output when run using 8 NVIDIA_V100 GPUs:
+#   AP: 0.39
+#   FLOPS: 94.43
+#   Duration of each trial: 3 days 17 hrs
+runtime:
+  distribution_strategy: 'mirrored'
+  mixed_precision_dtype: 'float16'
+  loss_scale: 'dynamic'
+task:
+  model:
+    # Note that `num_classes` is the total number of classes including
+    # one background class with an index value of 0.
+    num_classes: 91
+    # Controls the effective image-size for training.
+    input_size: [640, 640, 3]
+    # NOTE: If you change the 'min_level' and 'max_level'
+    # search-space related parameters here, then you also need
+    # to change them in the 'search_spaces.py' file.
+    min_level: 3
+    max_level: 7
+    backbone:
+      type: 'tunable_spinenet'
+      tunable_spinenet:
+        ##### SpineNet-49 @640,896 ####
+        filter_size_scale: 1.0
+        block_repeats: 1
+        resample_alpha: 0.5
+        endpoints_num_filters: 256
+        ##### SpineNet-96 @1024 #######
+        # filter_size_scale: 1.0
+        # block_repeats: 2
+        # resample_alpha: 0.5
+        # endpoints_num_filters: 256
+        ##### SpineNet-143 @1280 ######
+        # filter_size_scale: 1.0
+        # block_repeats: 3
+        # resample_alpha: 1.0
+        # endpoints_num_filters: 256
+        ##### SpineNet-49S @640 #######
+        # filter_size_scale: 0.75
+        # block_repeats: 1
+        # resample_alpha: 0.5
+        # endpoints_num_filters: 128
+        ###############################
+        init_stochastic_depth_rate: 0.2
+    decoder:
+      type: 'identity'
+    detection_generator:
+      # The maximum number of bboxes in one image.
+      max_num_detections: 100
+    head:
+      num_filters: 256
+      num_convs: 4
+    anchor:
+      # The intermediate scales added on each level.
+      # For instance, num_scales=2 adds one additional intermediate anchor scales
+      # [2^0, 2^0.5] on each level.
+      num_scales: 3
+      aspect_ratios: [1.0, 2.0, 0.5]
+      # A float number representing the scale of size of the base
+      # anchor to the feature stride 2^level.
+      anchor_size: 3.0
+    norm_activation:
+      activation: 'swish'
+      norm_epsilon: 0.001
+      norm_momentum: 0.997
+      use_sync_bn: true
+  losses:
+      l2_weight_decay: 0.00004
+  train_data:
+    # Reduce the batch-size if you run into out-of-memory error. Out-of-memory error may also be
+    # resolved by reducing the image-size but at the expense of quality.
+    # The global batch size for all included GPUs,
+    # global_batch_size = batch-size-per-gpu * num-gpus, under mirrored distribution strategy.
+    # 64 = 8 * 8
+    global_batch_size: 64
+    dtype: 'float16'
+    parser:
+      aug_rand_hflip: true
+      aug_scale_max: 2.0
+      aug_scale_min: 0.5
+  validation_data:
+    # NOTE: Partial batch will not be used for evaluation. So ideally,
+    # the total-number of eval-samples should be divisible by
+    # 'eval_batch_size' if you want all the samples to be used.
+    # 'eval_batch_size' needs to be divisible by 8 when using TPU.
+    global_batch_size: 64
+    dtype: 'float16'
+    drop_remainder: false
+  init_checkpoint: null
+  init_checkpoint_modules: null
+trainer:
+  # Guideline: train_steps = (num-examples / train-batch-size) * epochs
+  # 346547 = (118528 / 64) * 200 = 1852 * 200
+  train_steps: 370400
+  # Setting 'validation_steps' to -1 forces all the evaluation examples to be used.
+  validation_steps: 78  # 5000 / 64
+  steps_per_loop: 1852
+  validation_interval: 1852
+  summary_interval: 1852
+  checkpoint_interval: 1852
+  optimizer_config:
+    optimizer:
+      type: 'sgd'
+      sgd:
+        momentum: 0.9
+        global_clipnorm: 10.0
+    learning_rate:
+      stepwise:
+        boundaries: [333360, 351880, 361140]
+        # Reduce the learning rate if you get gradients reaching NAN error.
+        values: [0.14, 0.014, 0.0014, 0.00014]
+      type: 'stepwise'
+    warmup:
+      type: 'linear'
+      linear:
+        warmup_learning_rate: 0.00335
+        warmup_steps: 4000
+
