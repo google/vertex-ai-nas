@@ -25,7 +25,7 @@ After completing this tutorial, you should be able to:
 The training job in this tutorial only uses one cloud CPU and runs only
 for ~5 mins so you do not need any quota.
 But before you run this tutorial, please set up your environment as described
-[here](https://cloud.google.com/vertex-ai/docs/neural-architecture-search/environment-setup)
+[here](https://cloud.google.com/vertex-ai/docs/training/neural-architecture-search/environment-setup)
 except for quota.
 
 ---
@@ -42,7 +42,7 @@ on a GCS location under your project. A GCS file location format is:
 The `<path-to-sub-dir>` can have multiple nested directories.
 
 ---
-**NOTE:** For the ["mnist-trainer"](https://source.cloud.google.com/cloud-nas-260507/nas-codes-release/+/master:tutorial/mnist_train.py)
+**NOTE:** For the ["mnist-trainer"](https://github.com/google/vertex-ai-nas/blob/main/third_party/tutorial/mnist_train.py)
 here, the training-data is downloaded
 internally by the trainer so there is no need to upload the training files.
 **You should skip this section if you are using our "mnist-trainer" example
@@ -52,7 +52,7 @@ and move onto the section on integrating with the NAS service.**
 
 However, if you are using your own docker, you should upload your own
 training-data. You should have learned to create a "bucket" under your
-project [when setting up your environment](https://cloud.google.com/ai-platform/nas/docs/environment-setup#set-up-cloud-storage).
+project [when setting up your environment](https://cloud.google.com/vertex-ai/docs/training/neural-architecture-search/environment-setup#set-up-cloud-storage).
 You can copy any file to your bucket using the `gsutil`
 [commands](https://cloud.google.com/storage/docs/quickstart-gsutil).
 Here is an example:
@@ -113,7 +113,7 @@ Here, you should click on "CREATE FOLDER" and create a folder named
 
 ## Integrate with the NAS service
 
-We will start with a simple "mnist-trainer" code: [`mnist_train.py`](https://source.cloud.google.com/cloud-nas-260507/nas-codes-release/+/master:tutorial/mnist_train.py) and will modify it to
+We will start with a simple "mnist-trainer" code: [`mnist_train.py`](https://github.com/google/vertex-ai-nas/blob/main/third_party/tutorial/mnist_train.py) and will modify it to
 integrate with the NAS-service. The final modified file after this tutorial is
 `tutorial1_mnist_search.py`. You can use these changes as an example
 when using your own trainer code.
@@ -387,7 +387,7 @@ num_epochs=2
 Now that you have tested the docker run locally, you can launch your job on
 Google Cloud. But before you do that, you should create an output GCS bucket
 under your project. You should have learnt to create a "bucket" under your
-project [when setting up your environment](https://cloud.google.com/vertex-ai/docs/neural-architecture-search/environment-setup#set-up-cloud-storage).
+project [when setting up your environment](https://cloud.google.com/vertex-ai/docs/training/neural-architecture-search/environment-setup#set-up-cloud-storage).
 
 Use a bucket-location under your project as the `GCS_ROOT_DIR` below:
 
@@ -653,12 +653,12 @@ your GCS bucket to the `/gcs` directory, although we do not recommend this appro
 
 The local docker container requires the credentials of
 your account to get authenticated. After you finish
-[the setup of your local environment](https://cloud.google.com/vertex-ai/docs/neural-architecture-search/environment-setup#local-environment-setup),
+[the setup of your local environment](https://cloud.google.com/vertex-ai/docs/training/neural-architecture-search/environment-setup#local-environment-setup),
 `gcloud` generates credentials of your account under the `~/.config/gcloud` folder.
 When you run NAS jobs locally with docker, nas-client will mount the `~/.config/gcloud`
 folder into the docker for you to acquire the necessary credential to access GCS buckets.
 Please see the `run_container_local` function in
-[vertex_nas_cli.py](https://source.cloud.google.com/cloud-nas-260507/nas-codes-release/+/master:vertex_nas_cli.py)
+[vertex_nas_cli.py](https://github.com/google/vertex-ai-nas/blob/main/vertex_nas_cli.py)
 for the implementation.
 
 ## [Advanced] Alternatives to GCS-Fuse

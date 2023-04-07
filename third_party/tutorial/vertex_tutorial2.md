@@ -254,7 +254,7 @@ medium complexity level search-spaces using these constructs.
 
 ## Create search-space using PyGlove version of Python structures
 
-The mnist-trainer used [a model with 2 convolutions](https://source.cloud.google.com/cloud-nas-260507/nas-codes-release/+/master:tutorial/mnist_train.py;l=64-67)
+The mnist-trainer used [a model with 2 convolutions](https://github.com/google/vertex-ai-nas/blob/main/third_party/tutorial/mnist_train.py#L89)
 of kernel-sizes 3 each and number-of-filters as 4 and 8.
 Let us try to search over possible choices of kernel-size and
 number-of-filters for each of the two convolution layers. For kernel-size,
@@ -420,7 +420,7 @@ def mnist_class_search_space():
 To `PyGlove` a class, we derive it from `pg.Object`
 class and decorate it with `@pg.members`
 where the members themselves
-are of [`PyGlove` type](https://cloud.google.com/vertex-ai/docs/neural-architecture-search/pyglove#constraints_for_pyglove_types).
+are of [`PyGlove` type](https://cloud.google.com/vertex-ai/docs/training/neural-architecture-search/pyglove#constraints_for_pyglove_types).
 Search-options can be added using
 either `pg.one_of` or `pg.sublist_of`
 constructs.

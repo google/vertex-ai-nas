@@ -288,7 +288,7 @@ do further analysis. Each "dot" represents one trial/model.
 ## Launch a stage2 train-only job for a previous search
 
 Typically, the search-jobs are only a small representation of the
-full training job, which we call a [*proxy-task*](https://cloud.google.com/vertex-ai/docs/neural-architecture-search/suggested-workflow#proxy-task-setup).
+full training job, which we call a [*proxy-task*](https://cloud.google.com/vertex-ai/docs/training/neural-architecture-search/proxy-task-design).
 Therefore, you should do a full training of a few
 *top* search-trials seen so far.
 
@@ -378,8 +378,8 @@ However, a real NAS job involves running at least 2000 trials where
 each trial runs a **proxy task** which is a tailored smaller
 version (~1-2 hours training time) of the full-training job.
 
-Read the [**Best practices and suggested workflow**](https://cloud.google.com/vertex-ai/docs/neural-architecture-search/suggested-workflow)
+Read the [**Best practices and suggested workflow**](https://cloud.google.com/vertex-ai/docs/training/neural-architecture-search/suggested-workflow)
 guide to learn the end to end NAS job workflow and
-the [**Proxy task design**](https://cloud.google.com/vertex-ai/docs/neural-architecture-search/proxy-task-design)
+the [**Proxy task design**](https://cloud.google.com/vertex-ai/docs/training/neural-architecture-search/proxy-task-design)
 guide before you run an actual NAS job.
 

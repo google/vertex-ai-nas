@@ -17,4 +17,4 @@
 # pylint: disable=line-too-long
 
 # The url path to NAS webdoc.
-NAS_DOC_PATH = "https://cloud.google.com/vertex-ai/docs/neural-architecture-search/"
+NAS_DOC_PATH = "https://cloud.google.com/vertex-ai/docs/training/neural-architecture-search/"

@@ -386,9 +386,9 @@ num_epochs=2 \
 target_latency_millisec=3.0
 ```
 
-For the build command, by default we use our [pre-built latency-computation code](https://source.cloud.google.com/cloud-nas-260507/nas-codes-release/+/master:latency_computation_using_saved_model.py)
+For the build command, by default we use our [pre-built latency-computation code](https://github.com/google/vertex-ai-nas/blob/main/tf_vision/latency_computation_using_saved_model.py)
 when `latency_calculator_docker_file` is not provided. Here
-`tutorial4_latency_calculation.Dockerfile` uses [tutorial4_latency_computation.py](https://source.cloud.google.com/cloud-nas-260507/nas-codes-release/+/master:tutorial/tutorial4_latency_computation.py).
+`tutorial4_latency_calculation.Dockerfile` uses [tutorial4_latency_computation.py](https://github.com/google/vertex-ai-nas/blob/main/third_party/tutorial/tutorial4_latency_computation.py).
 
 For the search command, please note the values of flags
 `latency_calculator_docker_id`, `latency_docker_flags`, and
@@ -598,7 +598,7 @@ multiple docker containers for latency calculation, we use the
 `latency_worker_id` and `num_latency_workers` flags with the
 `run_latency_calculator_local` command. If `num_latency_workers` > 1, only a
 subset of the running trials is selected based on the trial_id in
-[model_metrics_evaluator.py](https://source.cloud.google.com/cloud-nas-260507/nas-codes-release/+/master:model_metrics_evaluator.py)
+[model_metrics_evaluator.py](https://github.com/google/vertex-ai-nas/blob/main/model_metrics_evaluator.py)
 as follows:
 
 ```py
@@ -688,6 +688,6 @@ we kept the model-latency computation code as simple
 as possible. For a more rigorous example of model-latency
 computation, which also calculates memory in a separate thread,
 you can look at
-function [`compute_model_metrics`](https://source.cloud.google.com/cloud-nas-260507/nas-codes-release/+/master:latency_computation_using_saved_model.py;l=49).
+function [`compute_model_metrics`](https://github.com/google/vertex-ai-nas/blob/main/tf_vision/latency_computation_using_saved_model.py#L84).
 
 ---

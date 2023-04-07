@@ -36,7 +36,7 @@ flag_2_to_trainer_docker=<>
 
 
 Example 1: Run the mnist search codelab:
-"tutorial/tutorial3.md"
+https://github.com/google/vertex-ai-nas/blob/main/third_party/tutorial/vertex_tutorial3.md
 
 
 Example 2: Run with NAS prebuilt search-space under constraint:

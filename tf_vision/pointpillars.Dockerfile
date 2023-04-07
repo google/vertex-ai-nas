@@ -61,6 +61,8 @@ RUN python${py_version} -m pip install tf-models-official==2.7.2
 RUN python${py_version} -m pip install --upgrade --force-reinstall tensorflow==2.6.0
 RUN python${py_version} -m pip install --upgrade --force-reinstall keras==2.6.0
 RUN python${py_version} -m pip install waymo-open-dataset-tf-2-6-0
+RUN python${py_version} -m pip install --upgrade --force-reinstall typeguard==2.7.0
+RUN python${py_version} -m pip install --upgrade --force-reinstall typing-extensions==3.7.4
 
 # Install tools
 RUN python${py_version} -m pip install cloud-tpu-client==0.10
