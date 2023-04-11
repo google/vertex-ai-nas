@@ -33,6 +33,13 @@ except for quota.
 
 ---
 
+## Troubleshooting and support
+
+If you face any issues, first use the
+[troubleshooting page](https://cloud.google.com/vertex-ai/docs/general/troubleshooting.md#neural-architecture-search)
+to find the answer. If you can not find
+a solution there, [request for support](https://cloud.google.com/vertex-ai/docs/support/getting-support#nas-support).
+
 ## Manage training-data on Google-Cloud-Storage (GCS) location under your project
 
 When you run a training job on Google Cloud, your input training-data needs
