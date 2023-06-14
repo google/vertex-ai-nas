@@ -25,7 +25,6 @@ from tf_vision.search_spaces import tunable_pointpillars_search_space
 import numpy as np
 import pyglove as pg
 
-from nas_lib.augmentation_3d import policies_search_space as augmentation_3d_search_space
 from nas_lib.augmentation_2d import policies_search_space as augmentation_search_space
 from nas_architecture import tunable_autoaugment_search_space
 from nas_architecture import tunable_efficientnetv2_search_space
@@ -81,8 +80,6 @@ def get_search_space(search_space):
     return autoaugment_detection_search_space()
   elif search_space == "autoaugment_segmentation":
     return autoaugment_segmentation_search_space()
-  elif search_space == "augment_3d_basic":
-    return augment_3d_basic_search_space()
 
   elif search_space == "spinenet_scaling":
     return spinenet_scaling_search_space()
@@ -185,21 +182,6 @@ def autoaugment_segmentation_search_space():
   total_num_ops = tunable_autoaugment_search_space.SEGMENTATION_OPS_COUNT
   return tunable_autoaugment_search_space.autoaugment_search_space(
       total_num_ops=total_num_ops, num_ops_per_sub_policy=2, num_sub_policies=5)
-
-
-# NOTE: This is just an example for creating a 3D augmentation search-space.
-# The user should modify this per own requirements.
-def augment_3d_basic_search_space():
-  return augmentation_3d_search_space.BasicSearchSpaceSpecBuilder(
-      bbox_rotation=pg.one_of([np.pi / 30, np.pi / 20]),
-      world_rotation=pg.one_of([np.pi / 6, np.pi / 4]),
-      world_scale_min=pg.one_of([0.8, 0.95]),
-      world_scale_max=pg.one_of([1.05, 1.2]),
-      frustum_dropout_theta=pg.one_of([0.02, 0.03]),
-      frustum_dropout_phi=pg.one_of([0.0, 0.01]))
-
-
-
 
 
 def spinenet_scaling_search_space():
