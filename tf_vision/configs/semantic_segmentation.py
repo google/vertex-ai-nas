@@ -30,10 +30,16 @@ from official.vision.beta.configs import semantic_segmentation as semantic_segme
 class SemanticSegmentationModel(
     semantic_segmentation_cfg.SemanticSegmentationModel):
   """Semantic segmentation model config."""
-  backbone: backbones.Backbone = backbones.Backbone(
-      type='tunable_spinenet', tunable_spinenet=backbones.TunableSpineNet())
-  decoder: decoders.Decoder = decoders.Decoder(
-      type='identity', identity=decoders.Identity())
+  backbone: backbones.Backbone = dataclasses.field(
+      default_factory=lambda: backbones.Backbone(  # pylint: disable=g-long-lambda
+          type='tunable_spinenet', tunable_spinenet=backbones.TunableSpineNet()
+      )
+  )
+  decoder: decoders.Decoder = dataclasses.field(
+      default_factory=lambda: decoders.Decoder(  # pylint: disable=g-long-lambda
+          type='identity', identity=decoders.Identity()
+      )
+  )
 
 
 @dataclasses.dataclass

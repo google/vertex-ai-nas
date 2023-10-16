@@ -22,7 +22,8 @@ In this tutorial you will launch a full search using the existing
 -  Launch a stage2 train-only job for a previous search.
 
 All the code for this tutorial can be found in `tutorial3_mnist_search.py`
-file.
+file. Further reading on stage1 search and stage2 train jobs can be in the [*Best
+practices and workflow* guide](https://cloud.google.com/vertex-ai/docs/training/neural-architecture-search/suggested-workflow#two_stages).
 
 ## Prerequisites
 

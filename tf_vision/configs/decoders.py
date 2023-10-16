@@ -46,7 +46,9 @@ class Decoder(hyperparams.OneOfConfig):
     aspp: ASPP decoder.
   """
   type: Optional[str] = None
-  identity: Identity = Identity()
-  tunable_nasfpn: TunableNASFPN = TunableNASFPN()
-  fpn: decoders.FPN = decoders.FPN()
-  aspp: decoders.ASPP = decoders.ASPP()
+  identity: Identity = dataclasses.field(default_factory=Identity)
+  tunable_nasfpn: TunableNASFPN = dataclasses.field(
+      default_factory=TunableNASFPN
+  )
+  fpn: decoders.FPN = dataclasses.field(default_factory=decoders.FPN)
+  aspp: decoders.ASPP = dataclasses.field(default_factory=decoders.ASPP)

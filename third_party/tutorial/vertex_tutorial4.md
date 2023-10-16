@@ -5,9 +5,18 @@ but may not be practical to use due to latency or memory or power
 constraints. This tutorial will show you how to add
 constraints to your architecture search. We will demonstrate
 this using both [FLOPS](https://en.wikipedia.org/wiki/FLOPS#:~:text=In%20computing%2C%20floating%20point%20operations,than%20measuring%20instructions%20per%20second.)
-and device-specific latency constraints. This tutorial will also show how to run
+and device-specific latency constraints.
+
+This tutorial will also show how to run
 multiple on-prem latency calculation workers in parallel. These principles can
 also be easily extended to other constraints such as memory, power, etc.
+After completing this tutorial, you should be able to:
+
+- Run a stage1 search with a FLOPS based latency constraint.
+- Run a stage1 search with a device-specific latency constraint.
+- Add a device-specific latency computation for a stage2 train job.
+- Run latency calculations on one or multiple on-prem devices.
+- Understand the high-level concepts of latency (or memory) calculations workflows.
 
 ## Prerequisites
 
@@ -113,7 +122,7 @@ still gets penalized via poor reward because it does not meet our
 FLOPS target.
 
 ---
-NOTE: Although the above example discusses the reward-design
+**NOTE:** Although the above example discusses the reward-design
 using FLOPS as an example, the same idea applies to incorporating
 device-latency, memory or power constraints. You can customize the
 `cloud_nas_utils.compute_reward` function to incorporate any
@@ -177,7 +186,7 @@ are very close to each other. However, if you look at the
 values. The `nas_reward` column is a combination
 of the accuracy and FLOPS and is marked as `(Objective)`
 because this value gets sent back to the NAS-service. Note that the
-NAS-search lists `Trial ID 8` as the best choice because
+NAS-search lists `Trial ID 5` as the best choice because
 it gives good accuracy with a latency which is `<=`
 0.8 million FLOPS.
 

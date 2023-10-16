@@ -22,7 +22,6 @@ places.
 from tf_vision.search_spaces import tunable_pointpillars_search_space
 
 
-import numpy as np
 import pyglove as pg
 
 from nas_lib.augmentation_2d import policies_search_space as augmentation_search_space
@@ -156,6 +155,7 @@ def efficientnet_v2_search_space():
 
 
 def pointpillars_search_space():
+  """Returns Lidar search space."""
   return tunable_pointpillars_search_space.pointpillars_search_space()
 
 
@@ -182,6 +182,7 @@ def autoaugment_segmentation_search_space():
   total_num_ops = tunable_autoaugment_search_space.SEGMENTATION_OPS_COUNT
   return tunable_autoaugment_search_space.autoaugment_search_space(
       total_num_ops=total_num_ops, num_ops_per_sub_policy=2, num_sub_policies=5)
+
 
 
 def spinenet_scaling_search_space():

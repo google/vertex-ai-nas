@@ -78,9 +78,17 @@ class Backbone(hyperparams.OneOfConfig):
     mnasnet: MnasNet backbone config.
   """
   type: Optional[str] = None
-  tunable_spinenet: TunableSpineNet = TunableSpineNet()
-  tunable_spinenet_mbconv: TunableSpineNetMBConv = TunableSpineNetMBConv()
-  tunable_mnasnet: TunableMnasNet = TunableMnasNet()
-  resnet: backbones.ResNet = backbones.ResNet()
-  efficientnet: backbones.EfficientNet = backbones.EfficientNet()
-  mnasnet: MnasNet = MnasNet()
+  tunable_spinenet: TunableSpineNet = dataclasses.field(
+      default_factory=TunableSpineNet
+  )
+  tunable_spinenet_mbconv: TunableSpineNetMBConv = dataclasses.field(
+      default_factory=TunableSpineNetMBConv
+  )
+  tunable_mnasnet: TunableMnasNet = dataclasses.field(
+      default_factory=TunableMnasNet
+  )
+  resnet: backbones.ResNet = dataclasses.field(default_factory=backbones.ResNet)
+  efficientnet: backbones.EfficientNet = dataclasses.field(
+      default_factory=backbones.EfficientNet
+  )
+  mnasnet: MnasNet = dataclasses.field(default_factory=MnasNet)

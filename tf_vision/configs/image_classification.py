@@ -30,9 +30,12 @@ class ImageClassificationModel(image_classification_cfg.ImageClassificationModel
   """The model config."""
   min_level: int = 3  # Only used for SpineNet.
   max_level: int = 7  # Only used for SpineNet.
-  backbone: backbones.Backbone = backbones.Backbone(
-      type='tunable_mnasnet',
-      tunable_mnasnet=backbones.TunableMnasNet(endpoints_num_filters=256))
+  backbone: backbones.Backbone = dataclasses.field(
+      default_factory=lambda: backbones.Backbone(  # pylint: disable=g-long-lambda
+          type='tunable_mnasnet',
+          tunable_mnasnet=backbones.TunableMnasNet(endpoints_num_filters=256),
+      )
+  )
 
 
 # ImageNet training set contains 1251139 samples.

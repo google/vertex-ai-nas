@@ -99,12 +99,12 @@ First navigate to the Google Cloud Platform (GCP) homepage for your project:
 <img src="images/gcp.png" alt="GCP" width="70%"/>
 
 In the search-box, type "storage" and
-then click on "Browser" in the drop-down options. This should take you to the
+then click on "Cloud Storage" in the drop-down options. This should take you to the
 storage-browser for your project:
 
 <img src="images/gcp_storage.png" alt="GCP Storage" width="70%"/>
 
-Click on "CREATE BUCKET" and type
+Click on "CREATE" and type
 `nas_tutorial` as the "bucket-name":
 
 <img src="images/create_bucket.png" alt="Create Bucket" width="70%"/>
@@ -399,7 +399,6 @@ project [when setting up your environment](https://cloud.google.com/vertex-ai/do
 Use a bucket-location under your project as the `GCS_ROOT_DIR` below:
 
 ```sh
-
 # Choose a bucket for the output directory.
 GCS_ROOT_DIR=<gs://output-bucket>
 # Set the region to be same as for your bucket. For example, `us-central1`.
@@ -497,6 +496,11 @@ that were set for this job:
 This is useful, if you visit a previous job after a while and want to
 check the parameters that were set or find out the output job directory.
 
+---
+**NOTE:** Training may take up to 15 minutes to complete on Vertex AI.
+
+---
+
 ## Verify output files residing on a GCS location
 
 Please verify that you can
@@ -505,7 +509,16 @@ for your Google Cloud job where '1'
 is the trial-id. For "mnist-trainer", you
 should see `dummy_output.txt` file in the output directory. An easy way to
 inspect the GCS location is to use the `gsutil`
-[commands](https://cloud.google.com/storage/docs/quickstart-gsutil):
+[commands](https://cloud.google.com/storage/docs/quickstart-gsutil). Here is an
+example:
+
+```sh
+gsutil ls $GCS_ROOT_DIR
+```
+The above command will list all content located at `GCS_ROOT_DIR`. You may use
+it to identify your search job's directory, or `job-dir`, for exercises below.
+
+Below is an example command to inspect your specified search job's output files:
 
 ```sh
 jobDir=<job-dir>
@@ -595,8 +608,7 @@ Sometimes you may need to share the logs with the NAS team for support.
 One option is to capture a snapshot of the area of interest. Another option
 is to download the logs and then email them.
 
-To download the logs, click the `Actions` icon,
-then click `Download logs`, and then choose "JSON" format to save the file:
+To download the logs, click `Download`, and then choose "JSON" format to save the file:
 
 <img src="images/download_log_drop_down.png" alt="Download-logs-drop-down" width="70%"/>
 
@@ -629,6 +641,10 @@ the `Preview on port 8080` to see the tensorboard plots:
 
 <img src="images/open_tensorboard.png" alt="Open-tensorboard" width="70%"/>
 
+Alternatively, you can open the tensorboard plots directly from the cloud shell:
+
+<img src="images/open_tensorboard_alternative.png" alt="Open-tensorboard-alt" width="70%"/>
+
 ---
 **NOTE:** If you did not specify a port or used a different port number,
 then you will have to click on `Change port` to use the correct port number.
@@ -641,8 +657,7 @@ For the mnist-trainer example here, you should see a plot similar to this:
 
 ## Cancel NAS job
 
-If you want to cancel a NAS job, first go to the job-list UI page by
-clicking `Training`:
+If you want to cancel a NAS job, first go to the `Vertex AI` page then from there, open the job-list UI page by clicking `Training`:
 
 <img src="vertex_images/back_to_job_list.png" alt="Back-to-job-list" width="70%"/>
 

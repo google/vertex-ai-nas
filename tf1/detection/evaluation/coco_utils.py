@@ -108,11 +108,21 @@ class COCOWrapper(coco.COCO):
     return res
 
 
-def convert_predictions_to_coco_annotations(predictions):
+def convert_predictions_to_coco_annotations(
+    predictions, remove_invalid_boxes=False
+):
   """Converts a batch of predictions to annotations in COCO format.
 
+  "remove_invalid_boxes" is an indicator whether invalid boxes should be removed
+  when evaluating on coco. Keeping invalid boxes may cause the groundtruth boxes
+  matched to an invalid boxes, making the evaluation inaccurate. However, to
+  make this function backward compatible, we set its default value to be false.
+  Another way to avoid using invalid boxes when evaluating on COCO is to set the
+  coordinates of invalid boxes to be "0" so they won't be matched to any
+  groundtruth boxes.
+
   Args:
-    predictions: a dictionary of lists of numpy arrays including the following
+   predictions: a dictionary of lists of numpy arrays including the following
       fields. K below denotes the maximum number of instances per image.
       Required fields:
         - source_id: a list of numpy arrays of int or string of shape
@@ -128,6 +138,10 @@ def convert_predictions_to_coco_annotations(predictions):
       Optional fields:
         - detection_masks: a list of numpy arrays of float of shape
             [batch_size, K, mask_height, mask_width].
+        - detection_keypoints: a list of numpy arrays of float of shape
+            [batch_size, K, num_keypoints, 2]
+    remove_invalid_boxes: A boolean indicating whether to remove invalid box
+      during evaluation.
 
   Returns:
     coco_predictions: prediction in COCO annotation format.
@@ -148,6 +162,19 @@ def convert_predictions_to_coco_annotations(predictions):
 
     # NOTE: Batch size may differ between chunks.
     batch_size = predictions['source_id'][i].shape[0]
+    if 'detection_keypoints' in predictions:
+      # Adds extra ones to indicate the visibility for each keypoint as is
+      # recommended by MSCOCO. Also, convert keypoint from [y, x] to [x, y]
+      # as mandated by COCO.
+      num_keypoints = predictions['detection_keypoints'][i].shape[2]
+      coco_keypoints = np.concatenate(
+          [
+              predictions['detection_keypoints'][i][Ellipsis, 1:],
+              predictions['detection_keypoints'][i][Ellipsis, :1],
+              np.ones([batch_size, max_num_detections, num_keypoints, 1]),
+          ],
+          axis=-1,
+      ).astype(int)
     for j in range(batch_size):
       if 'detection_masks' in predictions:
         image_masks = mask_utils.paste_instance_masks(
@@ -159,7 +186,13 @@ def convert_predictions_to_coco_annotations(predictions):
         encoded_masks = [
             mask_api.encode(np.asfortranarray(binary_mask))
             for binary_mask in list(binary_masks)]
-      for k in range(max_num_detections):
+      if remove_invalid_boxes:
+        num_detections = min(
+            predictions['num_detections'][i][j], max_num_detections
+        )
+      else:
+        num_detections = max_num_detections
+      for k in range(num_detections):
         ann = {}
         ann['image_id'] = predictions['source_id'][i][j]
         ann['category_id'] = predictions['detection_classes'][i][j, k]
@@ -167,6 +200,8 @@ def convert_predictions_to_coco_annotations(predictions):
         ann['score'] = predictions['detection_scores'][i][j, k]
         if 'detection_masks' in predictions:
           ann['segmentation'] = encoded_masks[k]
+        if 'detection_keypoints' in predictions:
+          ann['keypoints'] = coco_keypoints[j, k].flatten().tolist()
         coco_predictions.append(ann)
 
   for i, ann in enumerate(coco_predictions):
@@ -254,6 +289,25 @@ def convert_groundtruths_to_coco_dataset(groundtruths, label_map=None):
           ann['segmentation'] = encoded_mask
           if 'areas' not in groundtruths:
             ann['area'] = mask_api.area(encoded_mask)
+        if 'keypoints' in groundtruths:
+          keypoints = groundtruths['keypoints'][i]
+          coco_keypoints = []
+          num_valid_keypoints = 0
+          for z in range(len(keypoints[j, k, :, 1])):
+            # Convert from [y, x] to [x, y] as mandated by COCO.
+            x = float(keypoints[j, k, z, 1])
+            y = float(keypoints[j, k, z, 0])
+            coco_keypoints.append(x)
+            coco_keypoints.append(y)
+            if tf.math.is_nan(x) or tf.math.is_nan(y) or (
+                x == 0 and y == 0):
+              visibility = 0
+            else:
+              visibility = 2
+              num_valid_keypoints = num_valid_keypoints + 1
+            coco_keypoints.append(visibility)
+          ann['keypoints'] = coco_keypoints
+          ann['num_keypoints'] = num_valid_keypoints
         gt_annotations.append(ann)
 
   for i, ann in enumerate(gt_annotations):

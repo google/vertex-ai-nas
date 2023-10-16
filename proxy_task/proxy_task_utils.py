@@ -85,7 +85,7 @@ class TrialTrainingMetrics:
       accuracies over steps.
     training_time: `TrainingTime` object.
   """
-  training_time: TrainingTime = TrainingTime()
+  training_time: TrainingTime = dataclasses.field(default_factory=TrainingTime)
   latency: float = -1.0
   training_accuracy_over_steps: List[AccuracyAtStep] = dataclasses.field(
       default_factory=list)

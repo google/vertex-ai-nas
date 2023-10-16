@@ -20,8 +20,8 @@ python3 vertex_nas_cli.py build \
 --project_id=${PROJECT_ID} \
 --trainer_docker_id=${TRAINER_DOCKER_ID} \
 --latency_calculator_docker_id=${LATENCY_CALCULATOR_DOCKER_ID} \
---trainer_docker_file=Dockerfile \
---latency_calculator_docker_file=latency_computation_using_saved_model.Dockerfile
+--trainer_docker_file=tf_vision/nas_multi_trial.Dockerfile \
+--latency_calculator_docker_file=tf_vision/latency_computation_using_saved_model.Dockerfile
 
 To run search locally with prebuilt trainer / search space, run the following:
 (the flags to the container are passed in after `--`):
@@ -44,7 +44,7 @@ Example 2: Run with NAS prebuilt search-space under constraint:
 # Build the training container:
 python3 vertex_nas_cli.py build --project_id=${PROJECT_ID} \
 --trainer_docker_id=${TRAINER_DOCKER_ID} \
---trainer_docker_file=Dockerfile \
+--trainer_docker_file=tf_vision/nas_multi_trial.Dockerfile \
 --latency_calculator_docker_id=${LATENCY_CALCULATOR_DOCKER_ID}
 
 # Run in cloud (with use_prebuilt_trainer=True, the pass-in flags will be
@@ -72,7 +72,7 @@ training as well:
 # Build the training container:
 python3 vertex_nas_cli.py build --project_id=${PROJECT_ID} \
 --trainer_docker_id=${TRAINER_DOCKER_ID} \
---trainer_docker_file=Dockerfile \
+--trainer_docker_file=tf_vision/nas_multi_trial.Dockerfile \
 --latency_calculator_docker_id=${LATENCY_CALCULATOR_DOCKER_ID}
 
 # Run in cloud (with use_prebuilt_trainer=True, the pass-in flags will be
@@ -373,7 +373,7 @@ def create_container_args_map(container_flags, args, is_train_args_map):
 
 def sample_nas_trial_param_str(search_space):
   """Returns JSON string value for nas trial param."""
-  algorithm = pg.generators.Random()
+  algorithm = pg.geno.Random()
   algorithm.setup(search_space)
   sample_model = algorithm.propose()
   sample_model.use_spec(search_space)

@@ -88,13 +88,13 @@ def add_docker_file_parser(parser):
       "--trainer_docker_file",
       type=str,
       required=False,
-      default="Dockerfile",
+      default="tf_vision/nas_multi_trial.Dockerfile",
       help="The Docker file to build the training docker.")
   parser.add_argument(
       "--latency_calculator_docker_file",
       type=str,
       required=False,
-      default="latency_computation_using_saved_model.Dockerfile",
+      default="tf_vision/latency_computation_using_saved_model.Dockerfile",
       help="The Docker file to build the latency/memory calculation docker.")
 
   parser.add_argument(
