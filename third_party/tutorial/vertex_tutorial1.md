@@ -61,7 +61,7 @@ However, if you are using your own docker, you should upload your own
 training-data. You should have learned to create a "bucket" under your
 project [when setting up your environment](https://cloud.google.com/vertex-ai/docs/training/neural-architecture-search/environment-setup#set-up-cloud-storage).
 You can copy any file to your bucket using the `gcloud storage`
-[commands](https://cloud.google.com/storage/docs/quickstart-gsutil).
+[commands](https://docs.cloud.google.com/sdk/gcloud/reference/storage).
 Here is an example:
 
 ```sh
