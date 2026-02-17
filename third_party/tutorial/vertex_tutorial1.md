@@ -60,16 +60,16 @@ and move onto the section on integrating with the NAS service.**
 However, if you are using your own docker, you should upload your own
 training-data. You should have learned to create a "bucket" under your
 project [when setting up your environment](https://cloud.google.com/vertex-ai/docs/training/neural-architecture-search/environment-setup#set-up-cloud-storage).
-You can copy any file to your bucket using the `gsutil`
-[commands](https://cloud.google.com/storage/docs/quickstart-gsutil).
+You can copy any file to your bucket using the `gcloud storage`
+[commands](https://docs.cloud.google.com/sdk/gcloud/reference/storage).
 Here is an example:
 
 ```sh
-gsutil cp <local-path-to-my-file>/abc.txt gs://<my-bucket>/training_data/
+gcloud storage cp <local-path-to-my-file>/abc.txt gs://<my-bucket>/training_data/
 ```
 
 The above command will copy file `abc.txt` to a `training_data` folder
-under your bucket. You can also use `gsutil ls`, `gsutil rm`, and so on,
+under your bucket. You can also use `gcloud storage ls`, `gcloud storage rm`, and so on,
 similar to the shell commands `cp`, `ls`, and so on.
 
 ---
@@ -508,12 +508,12 @@ see the output files in the `<job_dir>/nas/search/1`
 for your Google Cloud job where '1'
 is the trial-id. For "mnist-trainer", you
 should see `dummy_output.txt` file in the output directory. An easy way to
-inspect the GCS location is to use the `gsutil`
-[commands](https://cloud.google.com/storage/docs/quickstart-gsutil). Here is an
+inspect the GCS location is to use the `gcloud storage`
+[commands](https://docs.cloud.google.com/sdk/gcloud/reference/storage). Here is an
 example:
 
 ```sh
-gsutil ls $GCS_ROOT_DIR
+gcloud storage ls $GCS_ROOT_DIR
 ```
 The above command will list all content located at `GCS_ROOT_DIR`. You may use
 it to identify your search job's directory, or `job-dir`, for exercises below.
@@ -522,7 +522,7 @@ Below is an example command to inspect your specified search job's output files:
 
 ```sh
 jobDir=<job-dir>
-gsutil ls ${jobDir}/nas/search/1
+gcloud storage ls ${jobDir}/nas/search/1
 ```
 ---
 **NOTE:** The `dummy_output.txt` file may be inside a sub-folder
