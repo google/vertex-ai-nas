@@ -65,11 +65,11 @@ You can copy any file to your bucket using the `gsutil`
 Here is an example:
 
 ```sh
-gsutil cp <local-path-to-my-file>/abc.txt gs://<my-bucket>/training_data/
+gcloud storage cp <local-path-to-my-file>/abc.txt gs://<my-bucket>/training_data/
 ```
 
 The above command will copy file `abc.txt` to a `training_data` folder
-under your bucket. You can also use `gsutil ls`, `gsutil rm`, and so on,
+under your bucket. You can also use `gcloud storage ls`, `gcloud storage rm`, and so on,
 similar to the shell commands `cp`, `ls`, and so on.
 
 ---
@@ -513,7 +513,7 @@ inspect the GCS location is to use the `gsutil`
 example:
 
 ```sh
-gsutil ls $GCS_ROOT_DIR
+gcloud storage ls $GCS_ROOT_DIR
 ```
 The above command will list all content located at `GCS_ROOT_DIR`. You may use
 it to identify your search job's directory, or `job-dir`, for exercises below.
@@ -522,7 +522,7 @@ Below is an example command to inspect your specified search job's output files:
 
 ```sh
 jobDir=<job-dir>
-gsutil ls ${jobDir}/nas/search/1
+gcloud storage ls ${jobDir}/nas/search/1
 ```
 ---
 **NOTE:** The `dummy_output.txt` file may be inside a sub-folder
