@@ -162,7 +162,7 @@ def cloud_dataset(str_arg, val_roi_size, train_transform, val_transform,
 
   # Copy training data from GCS location to the local VM.
   local_dir = tempfile.gettempdir()
-  command = "gsutil -m cp -R {} {}/".format(gcs_dir, local_dir)
+  command = "gcloud storage cp --recursive {} {}/".format(gcs_dir, local_dir)
   os.system(command)
 
   image_pattern = local_dir + "/" + image_pattern
